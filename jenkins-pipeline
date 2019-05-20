@@ -1,0 +1,27 @@
+node {
+    git 'https://github.com/niraj-chaudhary/kubernet-deployment.git'
+def deployment = input(message: 'is this new build', ok: 'Button',
+                    parameters: [booleanParam(defaultValue: 'true', 
+                    description: 'just push the button', name: 'Yes?')])
+
+
+if (deployment == true)
+{
+    echo "new build"
+    sh ''' ssh -T root@192.168.1.68
+    scp -r /root/.jenkins/workspace/kubernetes_deployment root@192.168.1.68:/opt/demo/Kubernetes
+    ssh -T root@192.168.1.68 kubectl apply -f /opt/demo/Kubernetes/kubernetes_deployment/deployment.yaml --record
+    
+    '''
+}
+else
+{
+    echo "old build"
+    sh ''' ssh -T root@192.168.1.68
+    scp -r /root/.jenkins/workspace/kubernetes_deployment root@192.168.1.68:/opt/demo/Kubernetes
+    ssh -T root@192.168.1.68 chmod 0755 /opt/demo/Kubernetes/kubernetes_deployment/*.sh
+    ssh -T root@192.168.1.68:/opt/demo/Kubernetes/kubernetes_deployment ./rollout.sh
+    
+    '''
+}
+}
